@@ -2,7 +2,7 @@ import { useState, useRef, FormEvent } from "react";
 import { Form, Row, Stack, Col, Button } from "react-bootstrap";
 import CreatableReactSelect from "react-select/creatable";
 import { CirclePicker } from "react-color";
-import { NoteData, TagType } from "App";
+import { NoteData, TagType } from "model/global.types";
 import { v4 as uuidV4 } from "uuid";
 import { useNavigate } from "react-router-dom";
 

@@ -1,33 +1,13 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container } from "react-bootstrap";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { NoteList } from "Pages/noteList";
 import { CreateNote } from "Pages/create";
 import { useLocalStorage } from "useLocalStorage";
 import { v4 as uuidV4 } from "uuid";
 import "./style/main.css";
-import { useState } from "react";
+import { RawNote, TagType, NoteData } from "model/global.types";
 import { NoteLayout } from "NoteDetailLayout";
-
-export type RawNote = {
-  id: string;
-  title: string;
-  markdown: string;
-  color: string;
-  tagIds: string[];
-};
-
-export type TagType = {
-  id: string;
-  label: string;
-};
-
-export type NoteData = {
-  title: string;
-  markdown: string;
-  tags: TagType[];
-  color: string;
-};
 
 function App() {
   const [notes, setNotes] = useLocalStorage<RawNote[]>("NOTES", []);

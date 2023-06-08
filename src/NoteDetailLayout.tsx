@@ -1,5 +1,5 @@
-import { RawNote } from "App";
-import { Navigate, Outlet, useParams } from "react-router-dom";
+import { RawNote } from "model/global.types";
+import { Outlet, useParams } from "react-router-dom";
 
 type NoteLayoutProps = {
   notes: RawNote[];

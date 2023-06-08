@@ -1,20 +1,9 @@
 import { Row, Col, Stack, Button, Form, Card, Badge } from "react-bootstrap";
 import ReactSelect from "react-select";
 import { Link, useNavigate } from "react-router-dom";
-import { TagType } from "App";
 import { useState } from "react";
-
-type silmplifiedNote = {
-  tags: TagType[];
-  title: string;
-  color: string;
-  id: string;
-};
-
-type NoteListProps = {
-  availableTags: TagType[];
-  notes: silmplifiedNote[];
-};
+import { NoteListProps } from "./NoteList.type";
+import { TagType } from "model/global.types";
 
 export function NoteList({ availableTags, notes }: NoteListProps) {
   const [selectedTags, setSelectedTags] = useState<TagType[]>([]);

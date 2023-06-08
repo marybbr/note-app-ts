@@ -1,11 +1,5 @@
 import { NoteForm } from "components/NoteForm";
-import { NoteData, TagType } from "App";
-
-type NewNoteProps = {
-  onSubmit: (data: NoteData) => void;
-  onAddTag: (tag: TagType) => void;
-  availableTags: TagType[];
-};
+import { NewNoteProps } from "./create.types";
 
 export function CreateNote({
   availableTags,
