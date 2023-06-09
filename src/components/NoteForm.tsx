@@ -2,7 +2,7 @@ import { useState, useRef, FormEvent } from "react";
 import { Form, Row, Stack, Col, Button } from "react-bootstrap";
 import CreatableReactSelect from "react-select/creatable";
 import { CirclePicker } from "react-color";
-import { NoteData, TagType } from "model/global.types";
+import { Note, NoteData, TagType } from "model/global.types";
 import { v4 as uuidV4 } from "uuid";
 import { useNavigate } from "react-router-dom";
 
@@ -10,14 +10,22 @@ type NoteFormProps = {
   onSubmit: (data: NoteData) => void;
   onAddTag: (tag: TagType) => void;
   availableTags: TagType[];
+  defaultValue?: Note;
 };
 
-export function NoteForm({ onSubmit, onAddTag, availableTags }: NoteFormProps) {
+export function NoteForm({
+  onSubmit,
+  onAddTag,
+  availableTags,
+  defaultValue,
+}: NoteFormProps) {
   const navigate = useNavigate();
 
-  const [selectedTags, setSelectedTags] = useState<TagType[]>([]);
-  const [SelectedColor, setSelectedColor] = useState("");
+  const [selectedTags, setSelectedTags] = useState<TagType[]>(
+    defaultValue?.tags || []
+  );
 
+  const [SelectedColor, setSelectedColor] = useState(defaultValue?.color || "");
   const titleRef = useRef<HTMLInputElement>(null);
   const markdownRef = useRef<HTMLTextAreaElement>(null);
 
@@ -40,7 +48,11 @@ export function NoteForm({ onSubmit, onAddTag, availableTags }: NoteFormProps) {
           <Col>
             <Form.Group>
               <Form.Label as="h4">Title</Form.Label>
-              <Form.Control ref={titleRef} required />
+              <Form.Control
+                ref={titleRef}
+                defaultValue={defaultValue?.title}
+                required
+              />
             </Form.Group>
           </Col>
           <Col>
@@ -108,7 +120,13 @@ export function NoteForm({ onSubmit, onAddTag, availableTags }: NoteFormProps) {
         <Row className="glassy-bg p-5 my-2">
           <Form.Group>
             <Form.Label>Body</Form.Label>
-            <Form.Control ref={markdownRef} required as="textarea" rows={10} />
+            <Form.Control
+              ref={markdownRef}
+              defaultValue={defaultValue?.markdown}
+              required
+              as="textarea"
+              rows={10}
+            />
           </Form.Group>
         </Row>
         <Stack
@@ -119,7 +137,12 @@ export function NoteForm({ onSubmit, onAddTag, availableTags }: NoteFormProps) {
           <Button variant="dark" type="submit">
             Save
           </Button>
-          <Button variant="outline-dark">Cancel</Button>
+          <Button
+            onClick={() => navigate(defaultValue ? `/${defaultValue.id}` : "/")}
+            variant="outline-dark"
+          >
+            Cancel
+          </Button>
         </Stack>
       </Stack>
     </Form>

@@ -3,11 +3,13 @@ import { Container } from "react-bootstrap";
 import { Route, Routes } from "react-router-dom";
 import { NoteList } from "Pages/noteList";
 import { CreateNote } from "Pages/create";
+import { Preview } from "Pages/preview";
+import { EditNote } from "Pages/edit";
 import { useLocalStorage } from "useLocalStorage";
 import { v4 as uuidV4 } from "uuid";
-import "./style/main.css";
 import { RawNote, TagType, NoteData } from "model/global.types";
 import { NoteLayout } from "NoteDetailLayout";
+import "./style/main.css";
 
 function App() {
   const [notes, setNotes] = useLocalStorage<RawNote[]>("NOTES", []);
@@ -22,8 +24,32 @@ function App() {
     });
   }
 
+  function onDeleteNote(id: string) {
+    setNotes((prvs) => {
+      return prvs.filter((note) => note.id !== id);
+    });
+  }
+
   function onAddTag(tag: TagType) {
     setTags((prvTag) => [...prvTag, tag]);
+  }
+
+  function onUpdateTag({ id, label }: { id: string; label: string }) {
+    setTags((prv) => {
+      return prv.map((tag) => {
+        if (tag.id === id) {
+          return { ...tag, label };
+        } else {
+          return tag;
+        }
+      });
+    });
+  }
+
+  function onDeleteTag(id: string) {
+    setTags((prvTags) => {
+      return prvTags.filter((tag) => tag.id !== id);
+    });
   }
 
   const noteWithTagsLable = notes.map((note) => {
@@ -38,7 +64,14 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<NoteList notes={noteWithTagsLable} availableTags={tags} />}
+          element={
+            <NoteList
+              notes={noteWithTagsLable}
+              availableTags={tags}
+              onDelete={onDeleteTag}
+              onUpdate={onUpdateTag}
+            />
+          }
         />
         <Route
           path="/new"
@@ -50,9 +83,18 @@ function App() {
             />
           }
         />
-        <Route path="/:id" element={<NoteLayout notes={notes} />}>
-          <Route index element={<h1>ID Page</h1>} />
-          <Route path="edit" element={<h1>Note Edit</h1>} />
+        <Route path="/:id" element={<NoteLayout notes={notes} tags={tags} />}>
+          <Route index element={<Preview onDelete={onDeleteNote} />} />
+          <Route
+            path="edit"
+            element={
+              <EditNote
+                availableTags={tags}
+                onSubmit={onCreateNote}
+                onAddTag={onAddTag}
+              />
+            }
+          />
         </Route>
         <Route path="*" element={<h1>Page Not 404</h1>} />
       </Routes>

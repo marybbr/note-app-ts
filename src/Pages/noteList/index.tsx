@@ -4,10 +4,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { NoteListProps } from "./NoteList.type";
 import { TagType } from "model/global.types";
+import { EditTagsModal } from "./editTagModal";
 
-export function NoteList({ availableTags, notes }: NoteListProps) {
+export function NoteList({ availableTags, notes, ...tagsFunc }: NoteListProps) {
   const [selectedTags, setSelectedTags] = useState<TagType[]>([]);
   const [title, setTitle] = useState("");
+  const [isShowModal, setIsShowModal] = useState(false);
   const Navigate = useNavigate();
 
   const filteredNote = notes.filter((note) => {
@@ -20,7 +22,7 @@ export function NoteList({ availableTags, notes }: NoteListProps) {
 
   return (
     <>
-      <Row className="align-items-center p-2 mb-5">
+      <Row className="align-items-center p-2 mb-5 ">
         <Col>
           <h1>Notes</h1>
         </Col>
@@ -29,7 +31,11 @@ export function NoteList({ availableTags, notes }: NoteListProps) {
             <Button onClick={() => Navigate("/new")} variant="dark" size="lg">
               Create
             </Button>
-            <Button variant="outline-dark" size="lg">
+            <Button
+              onClick={() => setIsShowModal(true)}
+              variant="outline-dark"
+              size="lg"
+            >
               Edit Tags
             </Button>
           </Stack>
@@ -43,6 +49,7 @@ export function NoteList({ availableTags, notes }: NoteListProps) {
               <Form.Control
                 type="text"
                 value={title}
+                required
                 onChange={(e) => setTitle(e.target.value)}
               />
             </Form.Group>
@@ -109,6 +116,12 @@ export function NoteList({ availableTags, notes }: NoteListProps) {
           ))}
         </Row>
       </Form>
+      <EditTagsModal
+        isShow={isShowModal}
+        onClose={() => setIsShowModal(false)}
+        availableTags={availableTags}
+        {...tagsFunc}
+      />
     </>
   );
 }

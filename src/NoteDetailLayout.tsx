@@ -1,8 +1,9 @@
-import { RawNote } from "model/global.types";
+import { RawNote, TagType, Note } from "model/global.types";
 import { Outlet, useParams } from "react-router-dom";
 
 type NoteLayoutProps = {
   notes: RawNote[];
+  tags: TagType[];
 };
 
 function NotFound() {
@@ -13,10 +14,15 @@ function NotFound() {
   );
 }
 
-export function NoteLayout({ notes }: NoteLayoutProps) {
+export function NoteLayout({ notes, tags }: NoteLayoutProps) {
   const param = useParams();
   const detectedNote = notes.find((n) => n.id === param.id);
 
+  const DetectedNoteWithTag = {
+    ...detectedNote,
+    tags: tags?.filter((tag) => detectedNote?.tagIds.includes(tag.id)),
+  };
+
   if (detectedNote == null) return <NotFound />;
-  return <Outlet context={detectedNote} />;
+  return <Outlet context={DetectedNoteWithTag as Note} />;
 }
