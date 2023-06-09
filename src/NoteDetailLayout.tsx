@@ -1,8 +1,10 @@
-import { RawNote, TagType, Note } from "model/global.types";
+import { useQuery } from "@tanstack/react-query";
+import { getNoteDetail } from "Services/NoteApi";
+import { TagType, Note } from "model/global.types";
+import { useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 
 type NoteLayoutProps = {
-  notes: RawNote[];
   tags: TagType[];
 };
 
@@ -14,15 +16,21 @@ function NotFound() {
   );
 }
 
-export function NoteLayout({ notes, tags }: NoteLayoutProps) {
-  const param = useParams();
-  const detectedNote = notes.find((n) => n.id === param.id);
-
+export function NoteLayout({ tags }: NoteLayoutProps) {
+  const { id } = useParams();
+  const { data: NoteDataById } = useQuery(
+    ["note-detail"],
+    () => getNoteDetail(id!),
+    {
+      enabled: !!id,
+      onError: () => {
+        return <NotFound />;
+      },
+    }
+  );
   const DetectedNoteWithTag = {
-    ...detectedNote,
-    tags: tags?.filter((tag) => detectedNote?.tagIds.includes(tag.id)),
+    ...NoteDataById?.data,
+    tags: tags?.filter((tag) => NoteDataById?.data?.tagIds.includes(tag.id)),
   };
-
-  if (detectedNote == null) return <NotFound />;
   return <Outlet context={DetectedNoteWithTag as Note} />;
 }

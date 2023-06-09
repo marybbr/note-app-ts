@@ -19,3 +19,8 @@ body {
 .modal-bg {
   background-color: rgb(169, 201, 210);
 }
+
+.toast-danger {
+  color: #721c24;
+  background-color: #bd8d91;
+}

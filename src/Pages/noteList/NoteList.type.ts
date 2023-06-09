@@ -1,4 +1,4 @@
-import { TagType, tagEditProps } from "model/global.types";
+import { TagType } from "model/global.types";
 
 export type silmplifiedNote = {
   tags: TagType[];
@@ -9,5 +9,5 @@ export type silmplifiedNote = {
 
 export type NoteListProps = {
   availableTags: TagType[];
-  notes: silmplifiedNote[];
-} & tagEditProps;
+  isError: boolean;
+};

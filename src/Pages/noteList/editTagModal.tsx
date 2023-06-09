@@ -1,20 +1,29 @@
-import { TagType } from "model/global.types";
+import { updateTags, deleteTags, getTags } from "Services/TagsApi";
 import { Button, Col, Form, Modal, Row, Stack } from "react-bootstrap";
-import { tagEditProps } from "model/global.types";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 type EditTagsModalProps = {
   isShow: boolean;
   onClose: () => void;
-  availableTags: TagType[];
-} & tagEditProps;
+};
 
-export function EditTagsModal({
-  isShow,
-  onClose,
-  availableTags,
-  onDelete,
-  onUpdate,
-}: EditTagsModalProps) {
+export function EditTagsModal({ isShow, onClose }: EditTagsModalProps) {
+  const [title, settitle] = useState("");
+  const { mutate: mutateDeleteTag } = useMutation(deleteTags, {
+    onSuccess: () => {
+      refetch();
+    },
+  });
+  const { mutate: mutateUpdateTag } = useMutation(updateTags);
+  const { data: tags, refetch } = useQuery(["tags-list"], getTags);
+
+  useEffect(() => {
+    if (isShow) {
+      refetch();
+    }
+  }, [isShow]);
+
   return (
     <Modal
       contentClassName="modal-bg"
@@ -29,23 +38,40 @@ export function EditTagsModal({
       <Modal.Body>
         <Form>
           <Stack gap={2}>
-            {availableTags.map((tag) => (
+            {tags?.data.map((tag) => (
               <Row key={tag.id}>
                 <Col className="w-100">
                   <Form.Control
                     type="text"
-                    value={tag.label}
-                    onChange={(e) =>
-                      onUpdate({ id: tag.id, label: e.target.value })
-                    }
+                    defaultValue={tag.label}
+                    // value={tag.label}
+                    onChange={(e) => settitle(e.target.value)}
+                    required
                   />
                 </Col>
                 <Col sm="auto">
                   <Button
-                    onClick={() => onDelete(tag.id)}
+                    onClick={() => mutateDeleteTag(tag.id)}
                     variant="outline-danger"
                   >
                     &times;
+                  </Button>
+                </Col>
+                <Col sm="auto">
+                  <Button
+                    onClick={() => {
+                      const body = {
+                        id: tag.id,
+                        label: title,
+                      };
+                      mutateUpdateTag({
+                        id: tag.id,
+                        body,
+                      });
+                    }}
+                    variant="success"
+                  >
+                    +
                   </Button>
                 </Col>
               </Row>

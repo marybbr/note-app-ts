@@ -2,17 +2,30 @@ import { Row, Col, Stack, Button, Form, Card, Badge } from "react-bootstrap";
 import ReactSelect from "react-select";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { NoteListProps } from "./NoteList.type";
+import { NoteListProps, silmplifiedNote } from "./NoteList.type";
 import { TagType } from "model/global.types";
 import { EditTagsModal } from "./editTagModal";
+import { useQuery } from "@tanstack/react-query";
+import { getNotes } from "Services/NoteApi";
 
-export function NoteList({ availableTags, notes, ...tagsFunc }: NoteListProps) {
+export function NoteList({ availableTags, isError = false }: NoteListProps) {
   const [selectedTags, setSelectedTags] = useState<TagType[]>([]);
   const [title, setTitle] = useState("");
   const [isShowModal, setIsShowModal] = useState(false);
   const Navigate = useNavigate();
 
-  const filteredNote = notes.filter((note) => {
+  const { data: notes } = useQuery(["notes-list"], getNotes, {
+    refetchOnMount: true,
+  });
+
+  const noteWithTagsLable = notes?.data.map((note: any) => {
+    return {
+      ...note,
+      tags: availableTags?.filter((tag) => note.tagIds.includes(tag.id)),
+    } as silmplifiedNote;
+  });
+
+  const filteredNote = noteWithTagsLable?.filter((note) => {
     return (
       selectedTags.every((tag) =>
         note.tags.some((noteTag) => noteTag.id === tag.id)
@@ -78,49 +91,51 @@ export function NoteList({ availableTags, notes, ...tagsFunc }: NoteListProps) {
             </Form.Group>
           </Col>
         </Row>
-        <Row xs={1} sm={2} lg={3} xl={4} className="g-3 mt-2">
-          {filteredNote.map((note) => (
-            <Col key={note.id}>
-              <Card
-                as={Link}
-                to={`/${note.id}`}
-                style={{
-                  backgroundColor: note.color,
-                  border: `1px solid ${note.color}`,
-                }}
-                className="h-100 text-reset text-decoration-none "
-              >
-                <Card.Body>
-                  <Stack
-                    gap={2}
-                    className="align-items-center justify-content-center"
-                  >
-                    <span className="fs-5 fw-bold">{note.title}</span>
+        {isError ? (
+          <h1>Request Not Found</h1>
+        ) : (
+          <Row xs={1} sm={2} lg={3} xl={4} className="g-3 mt-2">
+            {filteredNote?.map((note) => (
+              <Col key={note.id}>
+                <Card
+                  as={Link}
+                  to={`/${note.id}`}
+                  style={{
+                    backgroundColor: note.color,
+                    border: `1px solid ${note.color}`,
+                  }}
+                  className="h-100 text-reset text-decoration-none "
+                >
+                  <Card.Body>
                     <Stack
-                      gap={1}
-                      direction="horizontal"
-                      className="justify-content-center "
+                      gap={2}
+                      className="align-items-center justify-content-center"
                     >
-                      {note.tags.map((tag) => (
-                        <p className="h6" key={tag.id}>
-                          <Badge bg="light" text="dark">
-                            {tag.label}
-                          </Badge>
-                        </p>
-                      ))}
+                      <span className="fs-5 fw-bold">{note.title}</span>
+                      <Stack
+                        gap={1}
+                        direction="horizontal"
+                        className="justify-content-center "
+                      >
+                        {note.tags.map((tag) => (
+                          <p className="h6" key={tag.id}>
+                            <Badge bg="light" text="dark">
+                              {tag.label}
+                            </Badge>
+                          </p>
+                        ))}
+                      </Stack>
                     </Stack>
-                  </Stack>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
       </Form>
       <EditTagsModal
         isShow={isShowModal}
         onClose={() => setIsShowModal(false)}
-        availableTags={availableTags}
-        {...tagsFunc}
       />
     </>
   );

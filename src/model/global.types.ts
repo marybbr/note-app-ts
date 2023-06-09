@@ -21,8 +21,3 @@ export type NoteData = {
 export type Note = {
   id: string;
 } & NoteData;
-
-export type tagEditProps = {
-  onUpdate: ({ id, label }: { id: string; label: string }) => void;
-  onDelete: (id: string) => void;
-};

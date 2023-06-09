@@ -2,43 +2,48 @@ import { useState, useRef, FormEvent } from "react";
 import { Form, Row, Stack, Col, Button } from "react-bootstrap";
 import CreatableReactSelect from "react-select/creatable";
 import { CirclePicker } from "react-color";
-import { Note, NoteData, TagType } from "model/global.types";
+import { useMutation, useQueries } from "@tanstack/react-query";
+import { Note, RawNote, TagType } from "model/global.types";
 import { v4 as uuidV4 } from "uuid";
 import { useNavigate } from "react-router-dom";
+import { createNote, updateNote } from "Services/NoteApi";
+import { createTag } from "Services/TagsApi";
 
 type NoteFormProps = {
-  onSubmit: (data: NoteData) => void;
-  onAddTag: (tag: TagType) => void;
   availableTags: TagType[];
-  defaultValue?: Note;
+  note?: Note;
 };
 
-export function NoteForm({
-  onSubmit,
-  onAddTag,
-  availableTags,
-  defaultValue,
-}: NoteFormProps) {
+export function NoteForm({ availableTags, note }: NoteFormProps) {
   const navigate = useNavigate();
 
-  const [selectedTags, setSelectedTags] = useState<TagType[]>(
-    defaultValue?.tags || []
-  );
+  const { mutate: mutateAddTag } = useMutation(createTag);
+  const { mutate: mutateCreateNote } = useMutation(createNote, {
+    onSuccess: () => navigate("/"),
+  });
+  const { mutate: mutateUpdateNote } = useMutation(updateNote, {
+    onSuccess: () => navigate("/"),
+  });
 
-  const [SelectedColor, setSelectedColor] = useState(defaultValue?.color || "");
+  const [selectedTags, setSelectedTags] = useState<TagType[]>(note?.tags || []);
+  const [SelectedColor, setSelectedColor] = useState(note?.color || "");
   const titleRef = useRef<HTMLInputElement>(null);
   const markdownRef = useRef<HTMLTextAreaElement>(null);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    onSubmit({
+    const body = {
+      id: note?.id || uuidV4(),
       title: titleRef.current!.value,
       markdown: markdownRef.current!.value,
-      tags: selectedTags,
+      tagIds: selectedTags.map((tag) => tag.id),
       color: SelectedColor,
-    });
-
-    navigate("/");
+    } as RawNote;
+    if (note?.id) {
+      return mutateUpdateNote({ id: note?.id, body });
+    } else {
+      return mutateCreateNote(body);
+    }
   }
 
   return (
@@ -50,7 +55,7 @@ export function NoteForm({
               <Form.Label as="h4">Title</Form.Label>
               <Form.Control
                 ref={titleRef}
-                defaultValue={defaultValue?.title}
+                defaultValue={note?.title}
                 required
               />
             </Form.Group>
@@ -63,7 +68,7 @@ export function NoteForm({
                 styles={{ menuPortal: (base) => ({ ...base, zIndex: 10 }) }}
                 onCreateOption={(label) => {
                   const newTag = { id: uuidV4(), label };
-                  onAddTag(newTag);
+                  mutateAddTag(newTag);
                   setSelectedTags((prev) => [...prev, newTag]);
                 }}
                 value={selectedTags.map((tag) => {
@@ -122,7 +127,7 @@ export function NoteForm({
             <Form.Label>Body</Form.Label>
             <Form.Control
               ref={markdownRef}
-              defaultValue={defaultValue?.markdown}
+              defaultValue={note?.markdown}
               required
               as="textarea"
               rows={10}
@@ -138,7 +143,7 @@ export function NoteForm({
             Save
           </Button>
           <Button
-            onClick={() => navigate(defaultValue ? `/${defaultValue.id}` : "/")}
+            onClick={() => navigate(note ? `/${note.id}` : "/")}
             variant="outline-dark"
           >
             Cancel

@@ -1,16 +1,20 @@
 import { Badge, Button, Col, Row, Stack } from "react-bootstrap";
-import { useOutletContext } from "react-router-dom";
-import { Note } from "model/global.types";
+import { useOutletContext, useParams } from "react-router-dom";
+import { Note, TagType } from "model/global.types";
 import { useNavigate } from "react-router-dom";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { deleteNote, getNoteDetail } from "Services/NoteApi";
 
-type PreviewProps = {
-  onDelete: (id: string) => void;
-};
-
-export function Preview({ onDelete }: PreviewProps) {
-  const note = useOutletContext<Note>();
+export function Preview({ tags }: { tags: TagType[] }) {
+  const note = useOutletContext() as Note;
   const navigate = useNavigate();
+
+  const { mutate: mutateDeleteNote } = useMutation(deleteNote, {
+    // onSuccess: () => {
+    //   refetchNotes();
+    // },
+  });
 
   return (
     <div>
@@ -28,7 +32,7 @@ export function Preview({ onDelete }: PreviewProps) {
               Edit
             </Button>
             <Button
-              onClick={() => onDelete(note.id)}
+              onClick={() => mutateDeleteNote(note.id)}
               size="lg"
               variant="danger"
             >
@@ -52,7 +56,7 @@ export function Preview({ onDelete }: PreviewProps) {
           <h5>Tags :</h5>
         </Col>
         <Stack gap={2} direction="horizontal">
-          {note.tags.map((tag) => (
+          {note.tags.map((tag: any) => (
             <Badge bg="light" text="dark" key={tag.id}>
               {tag.label}
             </Badge>

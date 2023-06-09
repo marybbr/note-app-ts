@@ -5,59 +5,13 @@ import { NoteList } from "Pages/noteList";
 import { CreateNote } from "Pages/create";
 import { Preview } from "Pages/preview";
 import { EditNote } from "Pages/edit";
-import { useLocalStorage } from "useLocalStorage";
-import { v4 as uuidV4 } from "uuid";
-import { RawNote, TagType, NoteData } from "model/global.types";
 import { NoteLayout } from "NoteDetailLayout";
+import { getTags } from "Services/TagsApi";
+import { useQuery } from "@tanstack/react-query";
 import "./style/main.css";
 
 function App() {
-  const [notes, setNotes] = useLocalStorage<RawNote[]>("NOTES", []);
-  const [tags, setTags] = useLocalStorage<TagType[]>("TAGS", []);
-
-  function onCreateNote({ tags, ...data }: NoteData) {
-    setNotes((prevNotes) => {
-      return [
-        ...prevNotes,
-        { ...data, id: uuidV4(), tagIds: tags.map((tag) => tag.id) },
-      ];
-    });
-  }
-
-  function onDeleteNote(id: string) {
-    setNotes((prvs) => {
-      return prvs.filter((note) => note.id !== id);
-    });
-  }
-
-  function onAddTag(tag: TagType) {
-    setTags((prvTag) => [...prvTag, tag]);
-  }
-
-  function onUpdateTag({ id, label }: { id: string; label: string }) {
-    setTags((prv) => {
-      return prv.map((tag) => {
-        if (tag.id === id) {
-          return { ...tag, label };
-        } else {
-          return tag;
-        }
-      });
-    });
-  }
-
-  function onDeleteTag(id: string) {
-    setTags((prvTags) => {
-      return prvTags.filter((tag) => tag.id !== id);
-    });
-  }
-
-  const noteWithTagsLable = notes.map((note) => {
-    return {
-      ...note,
-      tags: tags.filter((tag) => note.tagIds.includes(tag.id)),
-    };
-  });
+  const { data: tags } = useQuery(["tags-list"], getTags);
 
   return (
     <Container>
@@ -65,35 +19,18 @@ function App() {
         <Route
           path="/"
           element={
-            <NoteList
-              notes={noteWithTagsLable}
-              availableTags={tags}
-              onDelete={onDeleteTag}
-              onUpdate={onUpdateTag}
-            />
+            <NoteList availableTags={tags?.data || []} isError={false} />
           }
         />
         <Route
           path="/new"
-          element={
-            <CreateNote
-              availableTags={tags}
-              onSubmit={onCreateNote}
-              onAddTag={onAddTag}
-            />
-          }
+          element={<CreateNote availableTags={tags?.data || []} />}
         />
-        <Route path="/:id" element={<NoteLayout notes={notes} tags={tags} />}>
-          <Route index element={<Preview onDelete={onDeleteNote} />} />
+        <Route path="/:id" element={<NoteLayout tags={tags?.data || []} />}>
+          <Route index element={<Preview tags={tags?.data || []} />} />
           <Route
             path="edit"
-            element={
-              <EditNote
-                availableTags={tags}
-                onSubmit={onCreateNote}
-                onAddTag={onAddTag}
-              />
-            }
+            element={<EditNote availableTags={tags?.data || []} />}
           />
         </Route>
         <Route path="*" element={<h1>Page Not 404</h1>} />
